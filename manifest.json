@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "tabuse",
+  "version": "1.0",
+  "description": "organises your tabssssss!.",
+  
+  "permissions": [
+    "tabs",
+    "sessions",
+    "storage",
+    "webRequest",
+    "<all_urls>"
+  ],
+
+  "background": {
+    "page": "bg/bg.html"
+  },
+  "sidebar_action": {
+    "default_title": "tabuse sidebar",
+    "default_panel": "ui/index.html"
+  },
+  "browser_action": {
+    "default_title": "tabuse popup",
+    "default_popup": "ui/index.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "addon@example.com",
+      "strict_min_version": "42.0"
+    }
+  }  
+}

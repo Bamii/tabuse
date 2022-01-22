@@ -1,0 +1,321 @@
+=============================================
+
+- DAY 1 - ~3hrs
+im naming it tabuse (tab abuse)... because, WHY NOT!? anyway, here is how it works
+(roughly). tabuse helps you manage tabs that you use a lot, and usually in the same context.
+say for example, you've got ADHD. your attention span is shorter than a leprechaun. you're researching
+something... you open a bunch of tabs.
+---
+i've got a rough idea of what i want. now it's time to choose my tools. i decided to build for firefox
+first, then port to chrome later. so, my tool(s) in this case is (largely) the API firefox exposed for working
+with extensions. 2/3? joints(~45 song playlist) after and i think i'm ready to build. i scaffold the extension like so.
+  / icons
+  / sidebar
+  - manifest.json
+  - background.js
+---
+my rationale? i decided to go with a sidebar for the main interface for the extension. (might include a popup, but it'll
+largely be the same code running both interfaces). i would also need background running tasks to handle windows and tabs
+being closed (to update the collection list)...
+---
+movies, sleep
+
+=============================================
+
+- DAY 2 - ~5hrs
+work's going on. man's typing, brainstorming, pacing, eating and shit. took a bit of time to test the firefox APIs and
+solidify the game plan in my head. after i'd gotten most of the APIs i'ld be using, i set on to work on the sidebar UI.
+---
+hmmph... vanilla html. **visible frustration** (thank God i don't need to write a lot of vanilla css). i thought about
+using react or vue to make building the UI easier... but guyyyyy this is a pet project, let's do something wild.
+let's build our own (maybe not optimised, but should work for our uses) semi reactive system. **mind blown**. semi reactive
+because it's semi reactive. :) but this should be fine i guess. this will be interesting.
+---
+*lion king song plays* i hearby christen thee AYUI. [AY UI... get it? ;)]. down to the implementation. this is going to
+be an 'iterative' development. build a feature as needed. this is largely because i want to build only what i need.
+might extend in the future. i've decided to use data attributes to define the events that should be handled. right off the bat,
+i can think of three events. 'click', 'show' and 'input'. (inspired by vue). represented by 'data-ta_click' 'data-ta_show'
+and 'data-ta_input'. and that will be the format for all events. there's a methods object (which contains all the methods available
+to the page) render function(which updates the reactives according to the state), state object, and a setState function
+(pretty self explanatory). state is not immutable atm if you were wondering. but we'll get there. the values of the data
+attributes could be values in state, functions set in the methods object. (in the case of 'show', the result of the function
+is turned to boolean). whenever the value of the data attributes is a function, and the function needs arguments. you should
+include a 'data-ta_fn_args' which takes a comma separated list of arguments.
+- say for example: to perform a function doSomething(val: String) when you click a div... you type
+- <div data-ta_click="doSomething" data-ta_fn_args="'sth'"></div>
+---
+`` NB: note that the value inside data-ta_fn_args is 'sth' NOT sth (without the quotes) as you would normally pass into an attribute.
+`` this is because if you passed sth without the quotes, AYUI assumes the argument is a variable either from state or methods.
+---
+i'm exhausted from a lot of things... sleep.
+
+=============================================
+
+- DAY 3 - ~7hrs
+work continues. whoop whoop. idk if i've been as excited about any project like this. maybe the monopoly sha *hand on chin, looking top-right*
+actually... 'data-ta_show' is basically 'data-ta_if'... ::TODO:: add else.
+added two more events. 'change' and 'for'... 'change' calls a function when an onchange event is fired, while 'for' is just like it's programming counterpart.
+- iterating items. used like so;
+- <div data-ta_for="coll in collection_list">
+-   <div data-ta_value="coll.name"></div>
+- </div>
+---
+`` NB: note that you have to use "item in items" format. items in this context is a variable. either from state or methods
+`` also note that items has to be an array or return an array. you can also see that we can reference the attribute we want using the dot separator.
+`` makes it feel natural. the for column can only have one child. if you want multiple children... wrap those in the one child.
+`` there is no support for multiple children just yet. damn! this iterative development is STRICT *sick face*
+---
+anyway, i test my handwork and "everything was beautiful in his sight". the actual UI not so though. ;/
+i guess that's enough on building AYUI (FOR THE MOMENT!) so i hop back on to tabuse.
+trying to use the for block in multiple places now and i realise there's a problem. BIG PROBLEM. all my divs became select tags :( *whiuun*
+mehnn that's not a problem for today. WE MOVE tomorrow.
+---
+music, sleep
+
+============================================
+
+- DAY 4 - ~12hrs
+about the bug our electric fly swatter caught yesterday. (it's dead and gone).
+first, how the for statement routine works ->
++ we find all the nodes that have data-ta_for,
++ process the value and extract the token to be used to find our array.
++ locate the variable (search through state and methods).
++ depending on its type <function, asyncfunction, variable> some computation is done to get the value of the actual array needed.
++ call a function with the current element and array as arguments to:
+  + clone the node (element).
+  + search for a node with 'data-ta_value'. (memoized function). call this layoutNode.
+  + process the value of the attribute into an 'objectChain'... basically an array of the values in the chain.
+  + loop through the array of items, and for each of them
+    + clone the layoutNode.
+    + set the text content to the value gotten from  applying the objectChain to the item.
+    + append to elementClone.
+  + replace element with elementClone.
+---
+> problem -> AYUI replaces all the 'data-ta_value' nodes (for ALL the for blocks on the page) with the first 'data-ta_value' node it finds.
+  i.e the memoized function always returns its first cached result. and this was because i was caching using variables being
+  passed to the document.querySelector function. problem is this variable pretty much never changes. it remains '[data-ta_value]'
+  in it's lifetime.
+> solution -> i fixed it by first adding a unique id to each for block, adding a last argument to the memoize function. the 'tracker',
+  and using the unique id as that last argument.
+---
+> problem -> after processing each for block. all the event listeners attached to the block will be removed because Node.cloneNode()
+  does not clone event listeners attached with addEventListener or oneventname.
+> solution -> created a 'listeners' table(basically an object) to hold the listeners. like so
+  `` { 'ta_click': { eventName: 'onclick', fn: e => e } }
+  so that we can loop through the reactives that the user has set, and attach the listeners accordingly.
+  had to do a bit of a hack to be able to attach the listeners properly.
+  ChildNode.cloneNode() returns void, so i don't have any reference to the node that has been attached.
+  and element has been replaced... so it's not on the dom tree anymore. i had to get use element's parent, to search for a node with the replaced
+  node's data-ta_for_id... which is basically the new node that we just inserted into the document.
+---
+damn i still haven't version controlled this thing yet... welp.
+---
+caught another bug... ughhhhhhhhh. and its still this for statement routine *visible tears*. damn!. anyway, i figure the way i'm doing things now may
+not be the best way to do things.
+> right now -> the for statement is declared on an element which has only one child which can contain any number of children. idk why i went that route
+  maybe because i didn't think deeply about the usage before i wrote it. ugh. that's gone now.
+> solution -> the for statement should be declared on the item they want repeated. with a data-ta_value on that same element.
+  you can have chilren nodes but they won't be reactive... i should do this thing. but i'm postponing. it feels simple ;/
+---
+so because of this, the for statement routine has changed a bit...and most of the changes happened in the function that iterates the array elements
+to create DOM Nodes for them. (the modified lines of the routine are indicated by ++ in the for statement routine algorithm above).
+---
+(writing this application kinda opened my eyes to functional programming).
+
+============================================
+
+- DAY 5 - ~3hrs
+didn't work for most of the day, sooooooo... anyway, scene is Admin Extension Lecture theatres, in the one OAU. i'm in an AIESEC meeting. i'm going through my routine
+in my head, and how i imagine it should run. because of the new more natural format that i'm using for the for block... retaining a reference to the exact positon of the
+for block's node is pretty impossible using my current algo because along the way, i would have to delete the actual nodes from the DOM tree itself, whenever there is a render.
+i needed to figure something out. and figure something out; i did. here are my thoughts;
+---
+`` on the first render, i could iterate through all for blocks, append a ta_for_id to each block node and it's parent node. now this is what makes it tick... i also be append a
+`` ta_for_parent attribute on the parents of each block. this ta_for_id is for the memoizing function that holds the values of each (cloned) children & parents nodes, (so that i'll have a reference that i won't modify at all)
+`` and then, process as usual to get the array identifier, and the value identifier we'll be needing. the parent, node, and values are then sent to another function for another processing.
+`` this function, determines the actual value of the array and then iterate the array.
+`` in this iteration, the parent's children are deleted. then the for block node (gotten from the memo function) is then cloned, and its data-ta_for and data-ta_value attributes are deleted.
+`` and then the clonedNode is appended to the parent.
+`` on subsequent runs, there is no data-ta_for present in the DOM, so we use the parents to find the positions of the for block nodes. using the data-ta_for_id to get it's related entities in the memo function.
+---
+works like a beauty. although idk... can i optimize more? i was thiking of;
+`` before AYUI iterates the values of the array, clone the parentNode.
+`` append the nodes you create to the parentClone.
+`` replace parent with parentClone.
+tried it out, butttt it didn't work. i don't exactly know why because i haven't gone much further investigating it. i'll keep trying until i find a way. but i really need to go back to my extension now.
+---
+DAMN! all these... for an extension.
+
+============================================
+
+- DAY 6 - ~13hrs
+i'm just here, trying to be a baby boy. like always. *flips nappy hair*. anyway modified our directory to look like so.
+  / bg
+    - bg.html
+    - background.js
+  / icons
+  / ui
+    - index.css
+    - index.html
+    - index.js
+  - utils.js
+  - manifest.json
+  - worklog.info
+---
+my rationale? (bet you knew i would say that lol).
+[for moving to using a background page from using a background script] i needed to import some functions from a separate file. so i just included both scripts in the background page.
+[for changing sidebar to ui]... i think that's pretty self explanatory.
+---
+off the top of my head, here is a list of things i need to take care of.
+[background tasks]
++ when the browser starts, how do i know all the windows that are being handled by tabuse?
++ after knowing the tabs. i should store the current state of tabuse. i.e: tabuse managed windows open.(to listen to events on them)
++ when a window is closed, delete it from the tabuse managed windows list.
++ when a tab is closed or created, or navigated away from in a tabuse managed window, update its tabs list in the state.
++ when a new tabuse collection is created... if user chose to manage the current window in focus. it just applies the settings to the window.
+  and it opens a new window, applies the settings on that window, if the user chose to create new window.
+  + this should be a general setting option. [auto open window after creation, auto use current window, auto use current tab].
+i think this is quite the bare minimum. will update in the future if need be.
+---
+ugh! finally i think it's time to write support for interpolated values. but will i do it? not yet.
+---
+and about saving state to the storage. because of some "limitations"... actually just one. all the functions in the extension API are asynchronous.
+say for example, in the first routine in the list of things i need to take care of (above), there are almost 2-3 different function calls
+one of which is saving data to the storage... inside a loop. i think we can see how that may not be a good idea. (i may overwriting data if i use n object to hold the whole state).
+soo i decided to store each tabuse managed window state using it's collection name as its key, and its value as so:
+- collection_name: {
+-   name: String,
+-   active: Boolean,
+-   tabs: Array<Url>,
+-   theme: Theme,
+-   windowId: Int
+- }
+[the other thing i need to store is the settings... should't be a problem if i name it 'ta_user_settings']... will someone one day choose that specific string for their collection name?
+**palm on chin, looking top right**... time'll decide].
+---
+after some deliberation, i decided to structure the storage area like so:
+- ta_state: {
+-   collection_name: {
+-     name: String,
+-     active: Boolean,
+-     tabs: Array<Url>,
+-     theme: Theme,
+-     windowId: Int
+-   }
+- }
+- ta_settings: {
+-   auto_open_window_on_create: Boolean,
+-   create_from_current_window: Boolean,
+-   use_current_tab: Boolean,
+- }
+---
+after i finalising this, i set out to write the routine for creating a new collection.
++ get the current app state
++ check if this collection_name exists already... if yes, return false. if no, continue.
++ if the user has "auto_open_window_on_create" setting on true, a new browser window is created with the list of urls provided, and a browser marker is set on the browser.
+  (the browser marker is a key/value with values ta_key/collection_name)... this indicates that this window is being tracked by tabuse
++ if this creation process is successful, set the windowId and the active field of the new collection. if not, return false.
++ update the app state. and if this is successful return true, return false if not.
+---
+i then set out to flesh out the background script. when the script first runs, it searches for the value of the ta_state and ta_settings...if it doesn't find one. this user has never run tabuse... so, set said values.
+then get the list of windows that are being managed by tabuse... (keys set on open windows persist over browser and system restarts)... update the id in the state. (this should run only whenever the user opens firefox).
+i then defined the cases i needed to handle according to [background tasks] list above. i decided on the following:
+--
+> problem -> what happens when a browser is closed...
+> solution -> listen on the windows.onRemoved event and do the following
+  + get the current app state
+  + filter the state using the window's id. this is based on the assumption that the app state is live. in that each collection if open in a browser window, have a 'windowId' field
+    set to the id of it's window, and an 'active' field set to true... if not open in a window, these values are null and false respectively.
+  + if this filter returns undefined... return false... if not, continue.
+  + set the active field to false, and set the windowId to null.
+  + update the app state to reflect changes.
+--
+> problem -> what happens when a closed browser is reopened...
+> solution -> this is one of the important reasons of the 'browser marker'. in firefox, if you set a value on the window, it persists even after closing the window,
+  so long you're in the same browser session. i.e: you haven't restarted firefox, or your system. anyway, the event to listen to here is the windows.onCreated event and here's the routine:
+  + get the "browser marker"
+  + get the current app state
+  + set its active field to true
+  + and its windowId field to the window id.
+  + update the state.
+--
+> problem -> what happens when a tab navigates to another url.
+> solution -> the event to listen to here is browser.tabs.onUpdated. this event's listener has three arguments.. tabId, updateInfo, tabInfo. since the updated event is fired a lot of times because a lot of things are being updated
+  on a tab. moveInfo has fields that depict what kind of update it was. i'm only only concerned about the navigation of links... which is depicted by a url property.
+  + if the url field is set on the updateInfo, move on.
+  + get the "browser marker"
+  + get the list of tabs currently in the window.
+  + update the state accordingly
+---
+so fucking tired now... will continue with moved, attached and detached tabs tomorrow. sleep.
+
+
+============================================
+
+- DAY 7 - ~30mins
+there's not much to do now. writing this routine should be the last of the background concerns. here we go.
+--
+> problem -> what happens when tabs are moved, attached or detached.
+> solution -> i grouped them together becausse they are relatively follow a similar process, and their listener functions all have the same signature.
+  + if a tab is detached/attached/moved... get the window id of its parent (oldWindow/newWindow/sameWwindow respectively)
+  + get the window's identifier... if it has one, that means it is being tracked by tabuse and continue
+  + get the current state.
+  + get the window's state using its identifier.
+  + get the list of the tabs the window has.
+  + update the state.
+---
+woop! all that's left is to build the UI. damn! we've come so far, robin.
+
+
+============================================
+
+- DAY 7+n+1 -
+started building the UI acccording to the figma i whipped up.  and i've gone pretty far. my mind did it's thing and i jumped into
+admiring my code... until those TODOs slapped me in the face. and now it's bug fixing time :))
+first, i needed to add a then branch to the if. (formerly 'show'). here's the new routine.
+1| save the element (if block) in a placecholder 'elly'
+2| set a variable 'matched' to false. this variable will help us know when a branch is matched.
+3| if the block's element doesn't have a 'originalDisplay' property, set it to the property that the browser computed (on first render).
+4| process the block. (find out if the value provided evaluates to 'true' or 'false')
+   + if 'matched' is true, do not do any computation. just make the element invisible and return.
+   + else, then if the value of the block's expression evalutes to true, set the block's display to the originalDisplay if its not 'none', and 'block' if it is 'none')
+5| set elly to equal elly's next sibling. and repeat from (3) while elly is not null, and elly has either ta_else_if or ta_else.
+---
+also added async functions support for onclick.
+the last thing i can think of is adding support for multiple values (in deeply nested views) in a for statement.
+that shouldn't be hard though. i imagine i'll element.getQuerySelectorAll('[data-ta_value]') and then loop through all
+to determine their values... and you should also be able to insert something from state... or a function. uno. the BASICS!!:~
+that shouldn't take a lot of time.
+
+
+============================================
+
+- DAY 7+n+2 -
+TODO!! natural function calls... i.e(brackets and shit)
+sooo i fixed that and YAY ME!!!.
+
+
+============================================
+
+- 12/12/2022 -
+i think i'm just going to append the date from now on instead of the previous Day N format.
+anywayyy... sooo i'm just there, overthinking... when i locked on tabuse. welp.
+last thing i tried to implement was the function thing... instead of using `data-ta_value` for everywhere  a function appears
+we use the function naturally like every other js fn... say for example
+- <div data-ta_click"callFn(variable, 'string')"`. >...</div>
+pretty cool, right? well i think so too :).
+problem is, i wrote an insanely naive parser for it. i immediately disconnected from the internet, cleared my hard drive, and I
+shut down my system, lest any other human specie found out what ilekule had been spawned.
+my parser:
++ find the first occurence of "("
++ splice the string from that position to first occurence of ")"
++ split the remaining string using "," as a separator
+...
++ trim the strings, and deterime what sort of variable it is... string or variable.
++ if it is a variable, check if is a function, or an ordinary variable
+  + if is ordinary variable, return the value of the variable.
+  + if function, call the function and return the result of the operation. (async or ordinary)
+i can already see a lot of things wrong with this. for example:
+- <div data-ta_click"callFn(variable, 'string', anotherfn(variable, 'string'), 'string')"`. >...</div
+...this is pretty self explanatory. first thought was to use babel's parser to parse each string.
+i would obviously get all the big guns... BUT 

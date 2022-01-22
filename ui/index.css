@@ -1,0 +1,106 @@
+
+.container {
+  width: 100%;
+  min-width: 300px;
+  max-width: 250px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.collection-action-row {
+  margin: 1rem 0;
+  border: 5px solid black;
+}
+
+.row-header {
+  padding: 0.7rem 1.5rem;
+  background-color: black;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.row-body {
+  border-top: 5px solid black;
+  padding: 1.5rem 1.5rem;
+}
+
+.section-header {
+  border-left: 3px solid black;
+  padding: 0.2rem 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  row-gap: 2rem;
+}
+
+.input-group, .checkbox-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.2rem;
+  column-gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.input-group input, .input-group select {
+  border: 0;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid black;
+  background-color: white;
+}
+
+.input-group input:focus, .input-group select:focus {
+  border-bottom: 2px solid black;
+}
+
+.input-group label, .checkbox-group label {
+  text-transform: lowercase;
+  font-size: 0.9rem;
+}
+
+.checkbox-group {
+  flex-direction: row;
+}
+
+.checkbox-group input[type="checkbox"] {
+  height: 1rem;
+  width: 1rem;
+  margin: 0;
+}
+
+.create-collection-tabs-input-container {
+  position: relative;
+}
+
+.create-collection-tabs-input-container #add-tab-to-collection {
+  position: absolute;
+  right: 0rem;
+  top: 0.6rem;
+  cursor: pointer;
+}
+
+.create-collection-tabs-input-container input {
+  padding: 0.6rem 3.7rem 0.6rem 1rem;
+
+}
+
+.create-collection-tabs-input-container #add-tab-to-collection:hover {
+  font-weight: bold;
+}
+
+.create-collection-tabs-list {
+  padding: 0.4rem 1rem;
+  border-left: 1px solid black;
+  margin: 1.5rem 0;
+}
+
+.create-collection-tabs {
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+}

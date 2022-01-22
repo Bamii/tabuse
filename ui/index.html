@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="index.css">
+  <title>Tabuse</title>
+</head>
+<body>
+  <div class="container">
+    <div class="collection-action-row">
+      <div
+        data-ta_click="setActionTab('create')"
+        class="row-header"
+      >
+        create collection <span>+</span>
+      </div>
+      <div
+        class="row-body"
+        data-ta_if="isActiveActionTab('create')"
+      >
+        <form class="form">
+          <div class="collection-details">
+            <div class="section-header">
+              collection details
+            </div>
+            <div class="input-group">
+              <input required data-ta_input="collection_name" name="create-collection-name" type="text" placeholder="school">
+              <label for="create-collection-name">Collection Name</label>
+            </div>
+            <div class="checkbox-group">
+              <input
+                data-ta_input="create_from_window"
+                type="checkbox"
+                name="create-collection-from-window"
+                class="create-collection-from-window"
+                id=""
+              >
+              <label for="create-collection-from-window">
+                Create collection from current window
+                (this will add all the tabs in this window to your collection)
+              </label>
+            </div>
+            <div class="checkbox-group">
+              <input
+                data-ta_input="open_window_on_create"
+                type="checkbox"
+                name="create-collection-from-window"
+                class="create-collection-from-window"
+                id="create-collection-from-window"
+              >
+              <label for="create-collection-from-window">
+                open window after creating
+              </label>
+            </div>
+          </div>
+          <!-- theme section -->
+          <div class="input-group">
+            <select
+              id=""
+              name=""
+              data-ta_change="changeExistingCollection"
+              data-ta_input="create_from_collection"
+            >
+              <option>1</option>
+              <option>2</option>
+            </select>
+            <label for="">select theme</label>
+          </div>
+          <div class="collection-tabs">
+            <div class="section-header">
+              collection tabs
+            </div>
+            <div class="create-collection-tabs-input-container">
+              <div class="input-group">
+                <input
+                  type="text"
+                  data-ta_input="collection_tab"
+                  name="create-collection-tab-link"
+                >
+                <label for="">tab url</label>
+              </div>
+              <div
+                id="add-tab-to-collection"
+                data-ta_click="addTabToCollection"
+              >add url</div>
+            </div>
+            <div class="checkbox-group">
+              <input data-ta_input="create_from_current_tab" type="checkbox" name="" id="">
+              <label for="">use current tab</label>
+            </div>
+            <div class="create-collection-tabs-list">
+              <div data-ta_if="isTabListEmpty" class="empty-list">
+                nobody home :(
+              </div>
+              <div data-ta_else="isTabListPopulated" class="create-collection-tabs">
+                <div
+                  class="collection-tab"
+                  data-ta_for="tab in getTabList"
+                  data-ta_click="removeTabFromCollection"
+                  data-ta_value="tab.url"
+                > {{  }} </div>
+              </div>
+            </div>
+            <div class="create-collection-button">
+              <button data-ta_click="createCollection" id="create-collection-submit">
+                create collection
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="collection-action-row">
+      <div
+        class="row-header"
+        data-ta_click="setActionTab('add')"
+      >
+        add tab to collection <span>+</span>
+      </div>
+      <div
+        class="row-body"
+        data-ta_if="isActiveActionTab('add')"
+      >
+        <form class="form">
+          <div>
+            <div class="section-header">
+              tab details
+            </div>
+            <div class="input-group">
+              <label for="">tab link</label>
+              <input required data-ta_input="collection_tab" type="url" placeholder="e.g: https://duckduckgo.com">
+            </div>
+            <div class="checkbox-group">
+              <input data-ta_input="create_from_current_tab" type="checkbox" name="" id="">
+              <label for="">use current tab</label>
+            </div>
+          </div>
+
+          <div class="add-tab-destination-container">
+            <div class="section-header">
+              target collection
+            </div>
+            <div class="add-tab-existing-collection-container">
+              <div class="input-group">
+                <select
+                  id=""
+                  name=""
+                  data-ta_input="create_from_collection"
+                >
+                  <option value="">Choose a collection</option>
+                  <option data-ta_for="coll in getFullCollectionList" data-ta_value="coll">
+                  </option>
+                </select>
+                <label for="">select collection to use</label>
+              </div>
+              <button data-ta_click="addTabsToACollection">add to this collection</button>
+            </div>
+            <div class="divider">
+              <div class=""></div>
+              or
+              <div class=""></div>
+            </div>
+            <div data-ta_click="setActionTab('create')" class="add-tab-new-collection">
+              add to new collection
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="collection-action-row">
+      <div class="row-header">
+        collections
+      </div>
+      <div class="row-body">
+        <div class="collection-list">
+          <div data-ta_for="collection in getFullCollectionList" data-ta_value="collection">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Babel -->
+  <!-- <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script> -->
+  <script src="../utils.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>
