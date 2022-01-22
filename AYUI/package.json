@@ -1,0 +1,14 @@
+{
+  "name": "ayui",
+  "version": "1.0.0",
+  "description": "window(tab) management for your browser.",
+  "main": "bin/index.js",
+  "bin": {
+    "ayui": "bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bami David",
+  "license": "ISC"
+}
