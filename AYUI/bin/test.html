@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>AYUI TEST</title>
+  </head>
+  <body>
+    <div class="">
+      AYUI TEST
+    </div>
+
+    <div data-ta_if="truthy"> - truthy value</div>
+    <div data-ta_if="truthy" data-ta_value="input"> {{ text }} - text value </div>
+    <input data-ta_input="input" placeholder="- input value"></input> <!-- two way input binding. -->
+    <input data-ta_change="inputMe"> <!-- one way input binding. -->
+    <input data-ta_input="truthy" type="checkbox"> truthy </input>
+    <div data-ta_for="item of items">
+      <div class=""> {{ item }} </div>
+    </div>
+    <div data-ta_value="input">{{ text }}</div>
+    <button data-ta_click="openMe">click evt (shortcut)</button>
+
+
+    <button data-ta_on="click,openMe" name="" value="">click evt (long)</button>
+    <input  data-ta_on="input,inputMe" name="" value="" placeholder="input evt(long)">
+    <select data-ta_on="change,changeMe"  class="" name=""></select>
+  </body>
+  <script type="module" src="ayui.js"></script>
+  <script type="text/javascript" src="jhashes.js"></script>
+</html>

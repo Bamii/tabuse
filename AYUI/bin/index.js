@@ -55,7 +55,7 @@ export default AYUI = (function({ methods, state }){
     click: document.querySelectorAll('[data-ta_click]'),
     forStatements: document.querySelectorAll('[data-ta_for]'),
     forStamentParents: document.querySelectorAll('[data-ta_for_parent]')
-  } // ::TODO::add support for interpolated data in the page.
+  } // ::TODO:: add support for interpolated data in the page.
 
   const KEYWORDS = [
     'ta_if', 'ta_for', 'ta_for_id',
@@ -84,14 +84,9 @@ export default AYUI = (function({ methods, state }){
     }, DEBOUNCE_TIME);
   }
 
-  const onchange_function = e => {
-    const stateKey = element.target.dataset.ta_change;
-    const variable = locateVariable(stateKey)
-
-    // throw error if it's not a function.
-    // setTimeout(() => {
-      variable.apply(TABUSE_UI, [e])
-    // }, DEBOUNCE_TIME);
+  const onchange_function = async e => {
+    let parsed = parse(e.target.dataset.ta_change);
+    await evaluate(parsed, locateVariable, TABUSE_UI , e)
   }
 
   const onclick_function = async e => {

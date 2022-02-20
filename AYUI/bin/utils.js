@@ -1,4 +1,4 @@
-export default TA_UTILS = (function() {
+export default (function() {
   const isEqual = (a,b) => {
     if(Array.isArray(a) && Array.isArray(b)) {
       if(a.length != b.length) return false;
@@ -14,11 +14,16 @@ export default TA_UTILS = (function() {
     return typeof(a) == typeof(b) ? a === b : false;
   }
 
+  const pipe = (data, that) =>
+    (...args) => args.reduce((acc, curr) => Reflect.apply(curr, that, [acc]), data);
+
+  // in this memoize fn... i really don't need
+  // the return values of subsequent calls to the function.
   const memoize = (type) => {
-    let values = new Map();
+    const values = new Map();
 
     return function(fn, args, thisArg, identifier = null) {
-      const argsrep = args.join(",")
+      const argsrep = args.join(",") //NAIVE!!
       let key = identifier || argsrep;
 
       if (values.has(key)) {
@@ -30,18 +35,23 @@ export default TA_UTILS = (function() {
     }
   }
 
+  const TOKEN_TYPE = {
+    VARIABLE: 'VARIABLE',
+    STRING: 'STRING'
+  }
+
   const checkTokenType = el => {
     if (el[0] === "'" || el[0] === '"') {
-      return 'string';
+      return TOKEN_TYPE.STRING;
     }
-    return 'variable';
+    return TOKEN_TYPE.VARIABLE;
   }
 
   const getType = o => Object.prototype.toString.call(o).split(' ')[1].slice(0, -1).toLowerCase();
 
   const is = (type, value) => getType(value).toLowerCase() === type.toLowerCase();
 
-  const checkVariableLocation = (...args) =>{
+  const checkVariableLocation = (...args) => {
     const locations = [...args]
     return function(variable) {
       const varLocation = locations.find(location => location.hasOwnProperty(variable))
@@ -49,9 +59,9 @@ export default TA_UTILS = (function() {
     }
   }
 
-  const stripQuotes = el => {
-    return itemInPosition(el.split(el[0]), 1).trim();
-  }
+  const stripQuotes = (el, pad) => itemInPosition(el.split(el[0]), 1).trim();
+
+  const stripPads = (el, pad) => el.trim().slice(pad, el.length-pad);
 
   const itemInPosition = (array, pos) => array[pos]
 
@@ -64,25 +74,24 @@ export default TA_UTILS = (function() {
       arg = arg.trim()
 
       switch(checkTokenType(arg)) {
-        case 'string':
+        case TOKEN_TYPE.STRING:
           return stripQuotes(arg);
 
-        case 'variable':
+        case TOKEN_TYPE.VARIABLE:
           return locateVariable(arg);
       }
     })
   }
 
-  const getValueFromObject = (object, chain) => {
-    return chain.reduce((acc, curr) => {
-      return acc[curr]
-    }, object)
-  }
+  // object => { a: { b { c: 'sth' }}}
+  // chain => "a.b.c"
+  const getValueFromObject = (object, chain) => chain.split('.').reduce((acc, curr) => acc[curr], object);
 
   const parse = (stream) => {
     const open = stream.indexOf('(');
     if(open < 0) return { value: stream }
 
+    // console.log(stream, stream.slice(0, open) , 'sgtg')
     return {
       fn: stream.slice(0, open),
       variables: stream.slice(open+1, stream.length-1).trim().split(","),
@@ -102,17 +111,18 @@ export default TA_UTILS = (function() {
       let res = await variableValue.apply(TABUSE_UI, [...extras, ...args]);
       return res
     }
-
     return variableValue;
   }
 
   return {
     is,
+    pipe,
     parse,
     evaluate,
     getType,
     memoize,
     isEqual,
+    stripPads,
     stripQuotes,
     normalizeArgs,
     checkTokenType,
